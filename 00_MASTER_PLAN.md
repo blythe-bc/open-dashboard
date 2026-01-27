@@ -10,7 +10,7 @@
 1. **사용자 인증**: IIS Windows Integrated Auth → Next에 `X-Auth-User`, `X-Auth-Groups` 전달
 2. **권한 소스**: `/api/me/policies` 번들(단일 Source of Truth)
 3. **DB 접근**: UI/Next는 **Meta DB만 직접 접근** 가능, 실제 분석 DB 접근은 **Daemon**만 가능
-4. **DB 실행**: **SP whitelist + SPParameterMap(표준 param_name → SP param) + timeout/maxRows/maxItems + 감사로그**
+4. **DB 실행**: **SP whitelist + SPParameterMap(표준 param_name → SP param) + timeout/max_rows/max_items + 감사로그**
 5. **Expert override**: 기본 OFF(WorkspacePolicy로만 허용)
 
 ### 제품/UX
