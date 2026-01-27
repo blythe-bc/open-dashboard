@@ -32,10 +32,55 @@
 ### 입력
 - workspaceId, endpointId, params(표준 param_name dict)
 - client context(dashboardId/widgetId/purpose)
+- requestId (필수, 클라이언트에서 생성 후 Daemon까지 그대로 전달)
 
 ### 출력
 - columns + rows
 - meta: normalizedParams, warnings, cacheKey, cached, durationMs
+
+### 표준 에러 응답 스키마
+- status (예: 400/403/500)
+- errorCode (예: VALIDATION_FAILED, FORBIDDEN, DAEMON_ERROR)
+- message (사람이 읽을 수 있는 오류 설명)
+- requestId (요청 추적용 식별자, 항상 포함)
+
+### 오류 조건 (명시)
+- 400: 입력 검증 실패 (workspace/endpoint 접근 불가, allowlist 위반, param_name 규칙 위반 등)
+- 403: 권한/인가 실패 (사용자 또는 토큰이 endpoint 실행 권한 없음)
+- 500: Daemon 실행 실패/예외 (timeout, 내부 오류, 다운스트림 장애 포함)
+
+### 응답 예시
+성공:
+```json
+{
+  "columns": [
+    { "name": "country", "type": "string" },
+    { "name": "sales", "type": "number" }
+  ],
+  "rows": [
+    ["US", 1200],
+    ["KR", 900]
+  ],
+  "meta": {
+    "normalizedParams": { "from_date": "2024-01-01", "to_date": "2024-01-31" },
+    "warnings": [],
+    "cacheKey": "q:abc123",
+    "cached": false,
+    "durationMs": 153
+  },
+  "requestId": "req_01HV9J3Y3ZJ8N5K5Y9J4X2B7Q0"
+}
+```
+
+에러:
+```json
+{
+  "status": 400,
+  "errorCode": "VALIDATION_FAILED",
+  "message": "param_name 'fromDate' is not allowed",
+  "requestId": "req_01HV9J3Y3ZJ8N5K5Y9J4X2B7Q0"
+}
+```
 
 ---
 
