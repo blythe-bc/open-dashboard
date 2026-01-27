@@ -26,12 +26,21 @@
 ---
 
 ## 1) DashboardConfig(초기 스키마 권장)
+### Dashboard (메타)
 - dashboardId/workspaceId/name/description
+- latestVersion (숫자, publish 시 증가)
+- publishedVersion (숫자, Viewer가 조회하는 버전)
+- status (active/archived 등 메타 상태)
+- createdAt/updatedAt
+
+### DashboardVersion (실제 구성)
+- dashboardId
+- version (필수, 숫자)
+- status (draft/published)
 - globalFilters (표준 param_name dict)
 - layout: react-grid-layout items
 - widgets: map(widgetId → widget config)
-- status: draft/published
-- version info
+- createdAt/updatedAt/publishedAt (published 상태일 때 필수)
 
 > MVP에서는 “스키마를 단순”하게, 확장은 Phase 3부터.
 
@@ -46,8 +55,13 @@
 ---
 
 ## 3) Publish 플로우(최소)
-- Draft config → Published config 복사 + version 증가
-- Viewer에서 동일 dashboardId로 조회 시 Published 렌더
+- Builder에서 Draft DashboardVersion 저장 (status=draft, version 유지)
+- Publish 시:
+  - Draft를 새로운 DashboardVersion으로 복사
+  - version을 `latestVersion + 1`로 증가시키고 status=published로 저장
+  - Dashboard.latestVersion, Dashboard.publishedVersion 갱신
+  - publishedAt 설정
+- Viewer는 dashboardId로 조회 시 `Dashboard.publishedVersion`을 확인하고 해당 DashboardVersion을 렌더
 
 ---
 
