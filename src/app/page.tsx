@@ -1,4 +1,4 @@
-import { getPoliciesSeed } from "@/lib/policies";
+import { policiesSeed } from "@/lib/policies";
 
 const cardStyle = {
   background: "#ffffff",
@@ -30,7 +30,7 @@ const sectionTitleStyle = {
 };
 
 export default function Home() {
-  const workspace = getPoliciesSeed().workspaces[0];
+  const workspace = policiesSeed.workspaces[0];
 
   return (
     <main
@@ -62,7 +62,7 @@ export default function Home() {
             </p>
           </div>
           <div style={{ textAlign: "right" }}>
-            <span style={tagStyle}>Policy Seed</span>
+            <span style={tagStyle}>{workspace.role}</span>
             <p style={{ margin: "8px 0 0", color: "#6b7280", fontSize: 12 }}>
               Theme: {workspace.standards.themeId}
             </p>

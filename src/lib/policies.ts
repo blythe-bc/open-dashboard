@@ -1,5 +1,3 @@
-import type { AuthContext } from "@/lib/auth";
-
 export type WorkspacePolicy = {
   expertMode: boolean;
   allowCustomSql: boolean;
@@ -53,24 +51,12 @@ export type PoliciesResponse = {
   workspaces: WorkspacePolicyBundle[];
 };
 
-type WorkspaceSeed = Omit<WorkspacePolicyBundle, "role">;
-
-type WorkspaceRoleBinding = {
-  workspaceId: string;
-  adGroup: string;
-  role: string;
-};
-
-type PoliciesSeed = {
-  workspaces: WorkspaceSeed[];
-  roleBindings: WorkspaceRoleBinding[];
-};
-
-const policiesSeed: PoliciesSeed = {
+export const policiesSeed: PoliciesResponse = {
   workspaces: [
     {
       id: "ws_default",
       name: "Default Workspace",
+      role: "DataViewer",
       policy: {
         expertMode: false,
         allowCustomSql: false,
@@ -111,60 +97,5 @@ const policiesSeed: PoliciesSeed = {
         themeId: "corp_default"
       }
     }
-  ],
-  roleBindings: [
-    {
-      workspaceId: "ws_default",
-      adGroup: "BI-Viewers",
-      role: "DataViewer"
-    },
-    {
-      workspaceId: "ws_default",
-      adGroup: "BI-Admins",
-      role: "DataAdmin"
-    },
-    {
-      workspaceId: "ws_default",
-      adGroup: "Platform-Admins",
-      role: "PlatformAdmin"
-    }
   ]
 };
-
-const rolePriority = ["PlatformAdmin", "DataAdmin", "DataViewer"];
-
-export function buildPoliciesResponse(auth: AuthContext): PoliciesResponse {
-  const userGroups = new Set(auth.adGroups.map((group) => group.toLowerCase()));
-
-  const workspaces = policiesSeed.workspaces.flatMap((workspace) => {
-    const matchingRoles = policiesSeed.roleBindings
-      .filter((binding) => binding.workspaceId === workspace.id)
-      .filter((binding) => userGroups.has(binding.adGroup.toLowerCase()))
-      .map((binding) => binding.role);
-
-    if (matchingRoles.length === 0) {
-      return [];
-    }
-
-    const role = rolePriority.find((candidate) => matchingRoles.includes(candidate));
-
-    if (!role) {
-      return [];
-    }
-
-    return [
-      {
-        ...workspace,
-        role
-      }
-    ];
-  });
-
-  return {
-    workspaces
-  };
-}
-
-export function getPoliciesSeed() {
-  return policiesSeed;
-}
