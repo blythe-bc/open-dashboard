@@ -53,6 +53,111 @@
 - Builder/Viewer는 **이 번들만**으로 UI 제한이 가능해야 한다.
 - allowedParams 외 파라미터는 이후 Phase 1에서 400으로 차단되어야 한다.
 
+### /api/me/policies Response Schema
+#### Typed Field List (JSON)
+```json
+{
+  "workspaces": [
+    {
+      "id": "string",
+      "name": "string",
+      "role": "string",
+      "policy": {
+        "expertMode": "boolean",
+        "allowCustomSql": "boolean",
+        "allowExport": "boolean"
+      },
+      "datasets": [
+        {
+          "id": "string",
+          "name": "string",
+          "allowedParams": ["string"],
+          "hierarchies": [
+            {
+              "id": "string",
+              "name": "string"
+            }
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "id": "string",
+          "name": "string",
+          "datasetId": "string",
+          "endpointId": "string"
+        }
+      ],
+      "endpoints": [
+        {
+          "id": "string",
+          "name": "string",
+          "timeoutMs": "number",
+          "maxRows": "number",
+          "maxItems": "number"
+        }
+      ],
+      "standards": {
+        "allowedClassNames": ["string"],
+        "themeId": "string"
+      }
+    }
+  ]
+}
+```
+
+#### Minimal Example Payload
+```json
+{
+  "workspaces": [
+    {
+      "id": "ws_default",
+      "name": "Default Workspace",
+      "role": "DataViewer",
+      "policy": {
+        "expertMode": false,
+        "allowCustomSql": false,
+        "allowExport": false
+      },
+      "datasets": [
+        {
+          "id": "ds_sales",
+          "name": "Sales",
+          "allowedParams": ["date_from", "date_to", "region"],
+          "hierarchies": [
+            {
+              "id": "h_region",
+              "name": "Region"
+            }
+          ]
+        }
+      ],
+      "metrics": [
+        {
+          "id": "m_revenue",
+          "name": "Revenue",
+          "datasetId": "ds_sales",
+          "endpointId": "ep_sales_summary"
+        }
+      ],
+      "endpoints": [
+        {
+          "id": "ep_sales_summary",
+          "name": "sp_sales_summary",
+          "timeoutMs": 30000,
+          "maxRows": 10000,
+          "maxItems": 200
+        }
+      ],
+      "standards": {
+        "allowedClassNames": ["ok", "warn", "fail", "muted", "info", "accent"],
+        "themeId": "corp_default"
+      }
+    }
+  ]
+}
+```
+
 ---
 
 ## 4) Seed 데이터(권장)
