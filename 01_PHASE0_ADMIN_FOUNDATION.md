@@ -46,6 +46,7 @@
   - policy 토글
   - 사용 가능한 dataset 목록 + allowedParams + hierarchies
   - metrics + endpointId
+  - endpoint 제한값(timeout, max_rows, max_items)
   - standards 최소(allowedClassNames, themeId)
 
 ### Acceptance Criteria
