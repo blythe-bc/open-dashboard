@@ -49,106 +49,52 @@
   - endpoint 제한값(timeout, max_rows, max_items)
   - standards 최소(allowedClassNames, themeId)
 
-### Acceptance Criteria
-- Builder/Viewer는 **이 번들만**으로 UI 제한이 가능해야 한다.
-- allowedParams 외 파라미터는 이후 Phase 1에서 400으로 차단되어야 한다.
-
-### /api/me/policies Response Schema
-#### Typed Field List (JSON)
-```json
+### `/api/me/policies` Response Schema
+> 아래 스키마는 Builder/Viewer/UI 제한을 위한 **단일 Source of Truth**로 사용된다.
+```jsonc
 {
+  "adUser": "DOMAIN\\user",
+  "adGroups": ["GROUP_A", "GROUP_B"],
   "workspaces": [
     {
-      "id": "string",
-      "name": "string",
-      "role": "string",
-      "policy": {
-        "expertMode": "boolean",
-        "allowCustomSql": "boolean",
-        "allowExport": "boolean"
-      },
-      "datasets": [
-        {
-          "id": "string",
-          "name": "string",
-          "allowedParams": ["string"],
-          "hierarchies": [
-            {
-              "id": "string",
-              "name": "string"
-            }
-          ]
-        }
-      ],
-      "metrics": [
-        {
-          "id": "string",
-          "name": "string",
-          "datasetId": "string",
-          "endpointId": "string"
-        }
-      ],
-      "endpoints": [
-        {
-          "id": "string",
-          "name": "string",
-          "timeoutMs": "number",
-          "maxRows": "number",
-          "maxItems": "number"
-        }
-      ],
-      "standards": {
-        "allowedClassNames": ["string"],
-        "themeId": "string"
-      }
-    }
-  ]
-}
-```
-
-#### Minimal Example Payload
-```json
-{
-  "workspaces": [
-    {
-      "id": "ws_default",
+      "workspaceId": "ws_default",
       "name": "Default Workspace",
-      "role": "DataViewer",
+      "role": "DataAdmin", // Viewer | Builder | DataAdmin | PlatformAdmin
       "policy": {
-        "expertMode": false,
-        "allowCustomSql": false,
-        "allowExport": false
+        "expertOverride": false,
+        "allowPublishByBuilder": true,
+        "maxChartPoints": 5000,
+        "maxGridClientRows": 5000
       },
-      "datasets": [
-        {
-          "id": "ds_sales",
-          "name": "Sales",
-          "allowedParams": ["date_from", "date_to", "region"],
-          "hierarchies": [
-            {
-              "id": "h_region",
-              "name": "Region"
-            }
-          ]
-        }
-      ],
-      "metrics": [
-        {
-          "id": "m_revenue",
-          "name": "Revenue",
-          "datasetId": "ds_sales",
-          "endpointId": "ep_sales_summary"
-        }
-      ],
-      "endpoints": [
-        {
-          "id": "ep_sales_summary",
-          "name": "sp_sales_summary",
-          "timeoutMs": 30000,
-          "maxRows": 10000,
-          "maxItems": 200
-        }
-      ],
+      "catalog": {
+        "datasets": [
+          {
+            "datasetId": "ds_sales",
+            "name": "Sales",
+            "allowedParams": ["dateFrom", "dateTo", "region"],
+            "hierarchies": [
+              { "hierarchyId": "h_region", "name": "Region" }
+            ]
+          }
+        ],
+        "metrics": [
+          {
+            "metricId": "m_revenue",
+            "name": "Revenue",
+            "datasetId": "ds_sales",
+            "endpointId": "ep_sales_revenue"
+          }
+        ],
+        "endpoints": [
+          {
+            "endpointId": "ep_sales_revenue",
+            "name": "sp_sales_revenue",
+            "timeoutMs": 30000,
+            "maxRows": 50000,
+            "maxItems": 5000
+          }
+        ]
+      },
       "standards": {
         "allowedClassNames": ["ok", "warn", "fail", "muted", "info", "accent"],
         "themeId": "corp_default"
@@ -157,6 +103,10 @@
   ]
 }
 ```
+
+### Acceptance Criteria
+- Builder/Viewer는 **이 번들만**으로 UI 제한이 가능해야 한다.
+- allowedParams 외 파라미터는 이후 Phase 1에서 400으로 차단되어야 한다.
 
 ---
 
