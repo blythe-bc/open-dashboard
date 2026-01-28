@@ -32,6 +32,16 @@ const HomePage = () => {
                         </Link>
                     </li>
                     <li>
+                        <Link href="/admin/dashboards">
+                            <a>Dashboards Management (Release/Rollback)</a>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/admin/performance">
+                            <a>Performance Dashboard</a>
+                        </Link>
+                    </li>
+                    <li>
                         <Link href="/dash/dash_sample">
                             <a>Sample Dashboard (Viewer)</a>
                         </Link>

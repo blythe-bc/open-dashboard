@@ -22,6 +22,7 @@ db.serialize(() => {
         allowPublishByBuilder INTEGER DEFAULT 1,
         maxChartPoints INTEGER DEFAULT 5000,
         maxGridClientRows INTEGER DEFAULT 5000,
+        llmEnabled INTEGER DEFAULT 0,
         createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
         updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (workspaceId) REFERENCES Workspace (id)
@@ -104,7 +105,6 @@ db.serialize(() => {
         createdAt TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Phase 2: Refactored Dashboard Model
     db.run(`CREATE TABLE IF NOT EXISTS Dashboard (
         id TEXT PRIMARY KEY,
         workspaceId TEXT,
@@ -131,8 +131,15 @@ db.serialize(() => {
         UNIQUE(dashboardId, version)
     )`);
 
-    // Deprecating separate Widget table in favor of embedding in DashboardVersion for versioning simplicity in MVP
-    db.run(`DROP TABLE IF EXISTS Widget`); 
+    db.run(`CREATE TABLE IF NOT EXISTS SavedView (
+        id TEXT PRIMARY KEY,
+        dashboardId TEXT,
+        name TEXT NOT NULL,
+        userId TEXT NOT NULL,
+        filters TEXT, -- JSON
+        createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (dashboardId) REFERENCES Dashboard (id)
+    )`);
 });
 
 db.close((err) => {

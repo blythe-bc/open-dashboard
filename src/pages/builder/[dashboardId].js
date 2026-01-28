@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { fetcher, postData } from '../../lib/api-client';
+import useUndoRedo from '../../lib/useUndoRedo';
 import crypto from 'crypto';
 
 // Dynamic import or require to handle CJS module in Next.js
@@ -12,7 +13,6 @@ try {
     const WidthProvider = RGL.WidthProvider;
     ResponsiveGridLayout = WidthProvider(Responsive);
 } catch (e) {
-    // Fallback or server-side handling if needed, though usually this runs on build too
     console.error("Failed to load react-grid-layout", e);
 }
 
@@ -21,10 +21,12 @@ const BuilderPage = () => {
     const { dashboardId } = router.query;
 
     const [dashboard, setDashboard] = useState(null);
-    const [version, setVersion] = useState(null);
     const [policies, setPolicies] = useState(null);
     const [selectedWidgetId, setSelectedWidgetId] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    // Use Undo/Redo hook for version state
+    const [version, setVersion, undo, redo, canUndo, canRedo, resetVersion] = useUndoRedo(null);
 
     useEffect(() => {
         if (!dashboardId) return;
@@ -38,7 +40,7 @@ const BuilderPage = () => {
                 fetcher('/api/me/policies')
             ]);
             setDashboard(dashData.meta);
-            setVersion(dashData.version);
+            resetVersion(dashData.version);
             setPolicies(policyData);
         } catch (error) {
             console.error('Failed to load builder data', error);
@@ -49,10 +51,15 @@ const BuilderPage = () => {
 
     const handleLayoutChange = (layout) => {
         if (!version) return;
-        setVersion(prev => ({
-            ...prev,
+        
+        // Basic check to prevent unnecessary updates if layout hasn't logically changed
+        // This is a naive check; RGL sometimes reshuffles.
+        if (JSON.stringify(version.layout) === JSON.stringify(layout)) return;
+
+        setVersion({
+            ...version,
             layout: layout
-        }));
+        });
     };
 
     const handleAddWidget = () => {
@@ -66,11 +73,11 @@ const BuilderPage = () => {
         };
         const newItem = { i: id, x: 0, y: 0, w: 4, h: 4 };
 
-        setVersion(prev => ({
-            ...prev,
-            widgets: { ...prev.widgets, [id]: newWidget },
-            layout: [...prev.layout, newItem]
-        }));
+        setVersion({
+            ...version,
+            widgets: { ...version.widgets, [id]: newWidget },
+            layout: [...version.layout, newItem]
+        });
     };
 
     const handleSave = async () => {
@@ -103,37 +110,37 @@ const BuilderPage = () => {
 
     const handleWidgetUpdate = (key, value) => {
         if (!selectedWidgetId) return;
-        setVersion(prev => ({
-            ...prev,
+        setVersion({
+            ...version,
             widgets: {
-                ...prev.widgets,
+                ...version.widgets,
                 [selectedWidgetId]: {
-                    ...prev.widgets[selectedWidgetId],
+                    ...version.widgets[selectedWidgetId],
                     [key]: value
                 }
             }
-        }));
+        });
     };
     
     const handleWidgetConfigUpdate = (key, value) => {
         if (!selectedWidgetId) return;
-         setVersion(prev => ({
-            ...prev,
+         setVersion({
+            ...version,
             widgets: {
-                ...prev.widgets,
+                ...version.widgets,
                 [selectedWidgetId]: {
-                    ...prev.widgets[selectedWidgetId],
+                    ...version.widgets[selectedWidgetId],
                     config: {
-                        ...prev.widgets[selectedWidgetId].config,
+                        ...version.widgets[selectedWidgetId].config,
                          [key]: value
                     }
                 }
             }
-        }));
+        });
     }
 
     if (loading) return <div>Loading Builder...</div>;
-    if (!dashboard) return <div>Dashboard not found</div>;
+    if (!dashboard || !version) return <div>Dashboard not found</div>;
 
     const selectedWidget = version.widgets[selectedWidgetId];
 
@@ -143,11 +150,14 @@ const BuilderPage = () => {
                 <div>
                     <strong>{dashboard.name}</strong> (v{version.version} - {version.status})
                 </div>
-                <div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={undo} disabled={!canUndo}>Undo</button>
+                    <button onClick={redo} disabled={!canRedo}>Redo</button>
+                    <div style={{ width: '20px' }}></div>
                     <button onClick={handleAddWidget}>+ Add Widget</button>
-                    <button onClick={handleSave} style={{ marginLeft: '10px' }}>Save Draft</button>
-                    <button onClick={handlePublish} style={{ marginLeft: '10px' }}>Publish</button>
-                    <a href={`/dash/${dashboardId}`} target="_blank" style={{ marginLeft: '10px' }}>View Published</a>
+                    <button onClick={handleSave}>Save Draft</button>
+                    <button onClick={handlePublish}>Publish</button>
+                    <a href={`/dash/${dashboardId}`} target="_blank">View Published</a>
                 </div>
             </header>
             
@@ -226,6 +236,10 @@ const BuilderPage = () => {
                                         <option value="bar">Bar</option>
                                         <option value="line">Line</option>
                                         <option value="pie">Pie</option>
+                                        <option value="area">Area</option>
+                                        <option value="scatter">Scatter</option>
+                                        <option value="heatmap">Heatmap</option>
+                                        <option value="kpi">KPI Card</option>
                                     </select>
                                 </>
                             )}
