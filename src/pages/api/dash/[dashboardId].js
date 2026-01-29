@@ -10,19 +10,35 @@ export default async function handler(req, res) {
             return res.status(404).json({ message: 'Dashboard not found' });
         }
 
-        if (dashboard.isPublished === 0) {
-             // In production, we'd check if user has Builder access to see draft
-             // For Viewer MVP, we only show Published.
+        if (dashboard.publishedVersion < 1) {
              return res.status(403).json({ message: 'Dashboard not published' });
         }
 
-        const widgets = await db.all(`SELECT * FROM Widget WHERE dashboardId = ?`, [dashboardId]);
+        const version = await db.get(
+            `SELECT * FROM DashboardVersion WHERE dashboardId = ? AND version = ?`, 
+            [dashboardId, dashboard.publishedVersion]
+        );
+
+        if (!version) {
+             return res.status(404).json({ message: 'Published version data not found' });
+        }
+
+        // Parse JSON fields
+        const widgetsMap = JSON.parse(version.widgets || '{}');
+        const widgets = Object.values(widgetsMap); // Convert map to array for frontend
+        const layout = JSON.parse(version.layout || '[]');
+        const globalFilters = JSON.parse(version.globalFilters || '{}');
 
         res.status(200).json({
             ...dashboard,
-            widgets
+            widgets,
+            layout,
+            globalFilters,
+            version: version.version,
+            publishedAt: version.publishedAt
         });
     } catch (error) {
+        console.error("Dashboard API Error:", error);
         res.status(500).json({ error: error.message });
     } finally {
         await db.close();

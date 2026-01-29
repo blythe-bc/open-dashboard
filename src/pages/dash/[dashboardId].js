@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { fetcher, postData } from '../../lib/api-client';
 import Widget from '../../components/Widget';
+import { Responsive as ResponsiveGridLayout, WidthProvider } from 'react-grid-layout';
 
 const DashboardViewer = () => {
     const router = useRouter();
@@ -31,7 +32,6 @@ const DashboardViewer = () => {
                 setDashboard(data);
                 
                 // Initialize filters from URL
-                // Exclude next.js specific params
                 const initialFilters = { ...queryParams };
                 setFilters(initialFilters);
 
@@ -61,7 +61,6 @@ const DashboardViewer = () => {
         
         setFilters(newFilters);
         
-        // Update URL shallowly
         router.replace({
             pathname: router.pathname,
             query: { dashboardId, ...newFilters }
@@ -97,8 +96,6 @@ const DashboardViewer = () => {
         setLlmLoading(true);
         setLlmResult('');
         try {
-            // Context: Send widget list and current filters
-            // In a real app, we might send summarized data points or schema
             const context = {
                 widgets: dashboard.widgets.map(w => ({ name: w.name, type: w.type })),
                 filters
@@ -117,76 +114,84 @@ const DashboardViewer = () => {
         }
     };
 
-    if (loading) return <div>Loading dashboard...</div>;
-    if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
-    if (!dashboard) return <div>Dashboard not found</div>;
+    if (loading) return <div className="container" style={{ marginTop: '20px', color: 'var(--accents-5)' }}>Loading dashboard...</div>;
+    if (error) return <div className="container" style={{ marginTop: '20px', color: 'var(--geist-error)' }}>Error: {error}</div>;
+    if (!dashboard) return <div className="container" style={{ marginTop: '20px' }}>Dashboard not found</div>;
 
     return (
-        <div style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h1>{dashboard.name}</h1>
+        <div style={{ minHeight: '100vh', background: 'var(--accents-1)' }}>
+            <nav className="layout-header">
+                <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{dashboard.name}</h1>
                 
-                <div style={{ display: 'flex', gap: '20px' }}>
-                    <div style={{ border: '1px solid #ddd', padding: '10px', background: '#f9f9f9' }}>
-                        <strong>Saved Views</strong>
-                        <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                     <button className="btn" onClick={handleAskAI} disabled={llmLoading} style={{ background: 'linear-gradient(90deg, #7928CA, #FF0080)', color: 'white', border: 'none' }}>
+                        {llmLoading ? 'Thinking...' : '✨ Ask AI'}
+                    </button>
+                </div>
+            </nav>
+
+            <div className="container" style={{ paddingTop: '24px' }}>
+                {llmResult && (
+                    <div className="card" style={{ marginBottom: '24px', background: 'var(--geist-background)', border: '1px solid var(--accents-2)' }}>
+                        <h4 style={{ margin: '0 0 10px 0' }}>AI Insight</h4>
+                        <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '14px', lineHeight: '1.6' }}>{llmResult}</p>
+                    </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', marginBottom: '24px' }}>
+                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '14px', whiteSpace: 'nowrap' }}>Global Filters:</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <label style={{ fontSize: '13px', color: 'var(--accents-5)' }}>Region</label>
+                            <select 
+                                className="select"
+                                style={{ width: '150px' }}
+                                value={filters['region'] || ''} 
+                                onChange={(e) => handleFilterChange('region', e.target.value)}
+                            >
+                                <option value="">All Regions</option>
+                                <option value="US">US</option>
+                                <option value="KR">KR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="card" style={{ padding: '16px' }}>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                             <input 
-                                placeholder="New view name" 
+                                className="input"
+                                placeholder="Save current view..." 
                                 value={newViewName} 
                                 onChange={(e) => setNewViewName(e.target.value)}
                             />
-                            <button onClick={handleSaveView}>Save</button>
+                            <button className="btn secondary" onClick={handleSaveView}>Save</button>
                         </div>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            {savedViews.map(view => (
-                                <li key={view.id} style={{ cursor: 'pointer', color: 'blue' }} onClick={() => handleLoadView(view)}>
-                                    {view.name}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    <div style={{ padding: '10px', background: '#eef' }}>
-                        <button onClick={handleAskAI} disabled={llmLoading}>
-                            {llmLoading ? 'Thinking...' : '✨ Ask AI'}
-                        </button>
-                        {llmResult && (
-                            <div style={{ marginTop: '10px', padding: '10px', background: 'white', border: '1px solid #ccc', maxWidth: '300px' }}>
-                                <strong>AI Insight:</strong>
-                                <p style={{ whiteSpace: 'pre-wrap' }}>{llmResult}</p>
+                        {savedViews.length > 0 && (
+                            <div>
+                                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--accents-5)', marginBottom: '8px', letterSpacing: '0.05em' }}>Saved Views</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                    {savedViews.map(view => (
+                                        <button key={view.id} className="btn secondary" style={{ height: '24px', fontSize: '12px', padding: '0 8px' }} onClick={() => handleLoadView(view)}>
+                                            {view.name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
-            </div>
 
-            {/* Mock Global Filter UI */}
-            <div style={{ marginBottom: '20px', padding: '10px', border: '1px solid #eee' }}>
-                <strong>Global Filters (Test): </strong>
-                <label style={{ marginLeft: '10px' }}>Region: </label>
-                <select 
-                    value={filters['region'] || ''} 
-                    onChange={(e) => handleFilterChange('region', e.target.value)}
-                >
-                    <option value="">All</option>
-                    <option value="US">US</option>
-                    <option value="KR">KR</option>
-                </select>
-                
-                <span style={{ marginLeft: '20px', color: '#666' }}>
-                    Current Filters: {JSON.stringify(filters)}
-                </span>
-            </div>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                {dashboard.widgets.map(widget => (
-                    <Widget 
-                        key={widget.id} 
-                        widget={widget} 
-                        workspaceId={dashboard.workspaceId} 
-                        filters={filters}
-                    />
-                ))}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px', paddingBottom: '40px' }}>
+                    {dashboard.widgets.map(widget => (
+                        <div key={widget.id} style={{ height: '320px' }}>
+                            <Widget 
+                                widget={widget} 
+                                workspaceId={dashboard.workspaceId} 
+                                filters={filters}
+                            />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

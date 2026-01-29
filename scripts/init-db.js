@@ -1,10 +1,15 @@
+require('dotenv').config({ path: '.env.local' });
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
-const db = new sqlite3.Database('/home/user/.gemini/tmp/80d3bec0670d13b276225fdd26d51791b5ca65bc1cd0766dfefa1202b469cf17/dev.db', (err) => {
+const dbPath = process.env.SQLITE_DB_PATH || path.join(__dirname, '../dev.db');
+
+const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
-        console.error(err.message);
+        console.error('Error opening database ' + dbPath + ': ' + err.message);
+        process.exit(1);
     }
-    console.log('Connected to the development database.');
+    console.log('Connected to the development database at: ' + dbPath);
 });
 
 db.serialize(() => {

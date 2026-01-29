@@ -53,90 +53,118 @@ const WorkspacesPage = () => {
     };
 
     return (
-        <div style={{ padding: '20px', display: 'flex', gap: '20px' }}>
-            <div style={{ flex: 1 }}>
-                <h1>Workspaces & Policies</h1>
-                
-                <form onSubmit={handleCreate} style={{ marginBottom: '20px' }}>
-                    <input 
-                        type="text" 
-                        value={newName} 
-                        onChange={(e) => setNewName(e.target.value)} 
-                        placeholder="Workspace Name"
-                    />
-                    <button type="submit">Create Workspace</button>
-                </form>
-
-                <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {workspaces.map(ws => (
-                        <li 
-                            key={ws.id} 
-                            onClick={() => loadPolicy(ws)}
-                            style={{ 
-                                padding: '10px', 
-                                border: '1px solid #ccc',
-                                marginBottom: '5px',
-                                cursor: 'pointer',
-                                background: selectedWs?.id === ws.id ? '#eef' : 'white'
-                            }}
-                        >
-                            {ws.name}
-                        </li>
-                    ))}
-                </ul>
+        <div className="container" style={{ paddingTop: '40px' }}>
+            <div style={{ marginBottom: '40px' }}>
+                <h1 style={{ fontSize: '24px', letterSpacing: '-0.02em', marginBottom: '8px' }}>Workspaces & Policies</h1>
+                <p style={{ margin: 0 }}>Manage your organization's workspaces and security policies.</p>
             </div>
-
-            {selectedWs && policy && (
-                <div style={{ flex: 1, borderLeft: '1px solid #ddd', paddingLeft: '20px' }}>
-                    <h2>Policy: {selectedWs.name}</h2>
-                    <form onSubmit={handlePolicyUpdate}>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label>
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!policy.expertOverride} 
-                                    onChange={(e) => setPolicy({...policy, expertOverride: e.target.checked})}
-                                /> Expert Override
-                            </label>
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label>
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!policy.allowPublishByBuilder} 
-                                    onChange={(e) => setPolicy({...policy, allowPublishByBuilder: e.target.checked})}
-                                /> Allow Publish by Builder
-                            </label>
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label>
-                                <input 
-                                    type="checkbox" 
-                                    checked={!!policy.llmEnabled} 
-                                    onChange={(e) => setPolicy({...policy, llmEnabled: e.target.checked ? 1 : 0})}
-                                /> Enable LLM Features
-                            </label>
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label style={{ display: 'block' }}>Max Chart Points</label>
-                            <input 
-                                type="number" 
-                                value={policy.maxChartPoints} 
-                                onChange={(e) => setPolicy({...policy, maxChartPoints: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label style={{ display: 'block' }}>Max Grid Client Rows</label>
-                            <input 
-                                type="number" 
-                                value={policy.maxGridClientRows} 
-                                onChange={(e) => setPolicy({...policy, maxGridClientRows: parseInt(e.target.value) || 0})}
-                            />
-                        </div>
-                        <button type="submit">Save Policy</button>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+                <div className="card">
+                    <h3 style={{ fontSize: '16px', marginBottom: '16px' }}>Workspaces</h3>
+                    <form onSubmit={handleCreate} style={{ marginBottom: '20px', display: 'flex', gap: '8px' }}>
+                        <input 
+                            className="input"
+                            type="text" 
+                            value={newName} 
+                            onChange={(e) => setNewName(e.target.value)} 
+                            placeholder="New Workspace Name"
+                        />
+                        <button className="btn" type="submit" style={{ background: 'var(--geist-foreground)', color: 'var(--geist-background)' }}>Add</button>
                     </form>
+
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                        {workspaces.map(ws => (
+                            <li 
+                                key={ws.id} 
+                                onClick={() => loadPolicy(ws)}
+                                style={{ 
+                                    padding: '12px', 
+                                    borderBottom: '1px solid var(--border-color)',
+                                    cursor: 'pointer',
+                                    background: selectedWs?.id === ws.id ? 'var(--accents-1)' : 'transparent',
+                                    color: selectedWs?.id === ws.id ? 'var(--geist-foreground)' : 'var(--accents-5)',
+                                    fontWeight: selectedWs?.id === ws.id ? 500 : 400,
+                                    borderRadius: 'var(--radius)',
+                                    marginBottom: '4px',
+                                    transition: 'background 0.15s ease'
+                                }}
+                            >
+                                {ws.name}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-            )}
+
+                {selectedWs && policy && (
+                    <div className="card">
+                        <div style={{ paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                            <h3 style={{ fontSize: '16px', margin: 0 }}>Policy: {selectedWs.name}</h3>
+                        </div>
+                        <form onSubmit={handlePolicyUpdate}>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={!!policy.expertOverride} 
+                                        onChange={(e) => setPolicy({...policy, expertOverride: e.target.checked})}
+                                        style={{ accentColor: 'var(--geist-success)' }}
+                                    /> 
+                                    <span style={{ fontSize: '14px' }}>Expert Override</span>
+                                </label>
+                                <p style={{ fontSize: '12px', color: 'var(--accents-4)', marginLeft: '24px', marginTop: '4px' }}>Allow advanced users to bypass standard query restrictions.</p>
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={!!policy.allowPublishByBuilder} 
+                                        onChange={(e) => setPolicy({...policy, allowPublishByBuilder: e.target.checked})}
+                                        style={{ accentColor: 'var(--geist-success)' }}
+                                    /> 
+                                    <span style={{ fontSize: '14px' }}>Allow Publish by Builder</span>
+                                </label>
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={!!policy.llmEnabled} 
+                                        onChange={(e) => setPolicy({...policy, llmEnabled: e.target.checked ? 1 : 0})}
+                                        style={{ accentColor: 'var(--geist-success)' }}
+                                    /> 
+                                    <span style={{ fontSize: '14px' }}>Enable LLM Features</span>
+                                </label>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--accents-5)' }}>Max Chart Points</label>
+                                    <input 
+                                        className="input"
+                                        type="number" 
+                                        value={policy.maxChartPoints} 
+                                        onChange={(e) => setPolicy({...policy, maxChartPoints: parseInt(e.target.value) || 0})}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: 'var(--accents-5)' }}>Max Grid Client Rows</label>
+                                    <input 
+                                        className="input"
+                                        type="number" 
+                                        value={policy.maxGridClientRows} 
+                                        onChange={(e) => setPolicy({...policy, maxGridClientRows: parseInt(e.target.value) || 0})}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-color)', textAlign: 'right' }}>
+                                <button className="btn" type="submit" style={{ background: 'var(--geist-foreground)', color: 'var(--geist-background)' }}>Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

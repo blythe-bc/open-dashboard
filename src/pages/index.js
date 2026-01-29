@@ -2,58 +2,67 @@ import React from 'react';
 import Link from 'next/link';
 
 const HomePage = () => {
+    const sections = [
+        {
+            title: "Administration",
+            description: "Manage system configuration, security, and data sources.",
+            links: [
+                { href: "/admin/workspaces", label: "Workspaces & Policies" },
+                { href: "/admin/role-bindings", label: "Role Bindings" },
+                { href: "/admin/datasets", label: "Datasets & Metrics" },
+                { href: "/admin/endpoints", label: "Endpoints" },
+                { href: "/admin/param-map-editor", label: "Parameter Maps" },
+                { href: "/admin/dashboards", label: "Dashboard Management" },
+                { href: "/admin/performance", label: "System Performance" },
+            ]
+        },
+        {
+            title: "Dashboards",
+            description: "View and create business intelligence dashboards.",
+            links: [
+                { href: "/dash/dash_sample", label: "Sample Dashboard (Viewer)" },
+                { href: "/builder/dash_sample", label: "Sample Dashboard (Builder)" },
+            ]
+        }
+    ];
+
     return (
-        <div>
-            <nav>
-                <ul>
-                    <li>
-                        <Link href="/admin/workspaces">
-                            <a>Workspaces & Policies</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/role-bindings">
-                            <a>Role Bindings</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/datasets">
-                            <a>Datasets</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/endpoints">
-                            <a>Endpoints</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/param-map-editor">
-                            <a>Parameter Map Editor</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/dashboards">
-                            <a>Dashboards Management (Release/Rollback)</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/admin/performance">
-                            <a>Performance Dashboard</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/dash/dash_sample">
-                            <a>Sample Dashboard (Viewer)</a>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link href="/builder/dash_sample">
-                            <a>Sample Dashboard (Builder)</a>
-                        </Link>
-                    </li>
-                </ul>
+        <div style={{ minHeight: '100vh', background: 'var(--accents-1)' }}>
+            <nav className="layout-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '20px', height: '20px', background: 'black', borderRadius: '50%' }}></div>
+                    <span style={{ fontWeight: 600 }}>Open Dashboard</span>
+                </div>
+                <div>
+                    <span style={{ fontSize: '12px', color: 'var(--accents-5)' }}>v0.1.0-beta</span>
+                </div>
             </nav>
-            <h1>Hello, World!</h1>
+
+            <main className="container" style={{ paddingTop: '40px' }}>
+                <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '2.5rem', letterSpacing: '-0.04em', marginBottom: '10px' }}>Welcome Back</h1>
+                    <p style={{ fontSize: '1.1rem', color: 'var(--accents-5)' }}>Select a module to get started.</p>
+                </div>
+
+                <div className="grid-layout">
+                    {sections.map((section, idx) => (
+                        <div key={idx} className="card">
+                            <h3 style={{ marginBottom: '8px' }}>{section.title}</h3>
+                            <p style={{ fontSize: '13px', marginBottom: '20px' }}>{section.description}</p>
+                            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                {section.links.map(link => (
+                                    <li key={link.href} style={{ marginBottom: '8px' }}>
+                                        <Link href={link.href} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--geist-foreground)', fontSize: '14px' }}>
+                                            <span style={{ color: 'var(--accents-4)' }}>→</span>
+                                            {link.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                </div>
+            </main>
         </div>
     );
 };

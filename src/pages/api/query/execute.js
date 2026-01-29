@@ -64,17 +64,34 @@ export default async function handler(req, res) {
         const startTime = Date.now();
         
         // Mocking some delay
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
+        // Generate dynamic mock data based on endpointId to make it look real
         const columns = [
             { name: "category", type: "string" },
             { name: "value", type: "number" }
         ];
-        const rows = [
-            ["A", 100],
-            ["B", 200],
-            ["C", 150]
-        ];
+
+        const rowCount = Math.floor(Math.random() * 20) + 5; // 5 to 25 rows
+        const rows = [];
+        const categories = ['North', 'South', 'East', 'West', 'Central', 'EMEA', 'APAC', 'LATAM'];
+        const products = ['Widget A', 'Widget B', 'Gadget X', 'Gadget Y', 'Tool Z'];
+        
+        for (let i = 0; i < rowCount; i++) {
+            let label;
+            if (endpointId.includes('region')) {
+                label = categories[i % categories.length];
+            } else {
+                label = `${products[i % products.length]} - ${Math.floor(i / products.length) + 1}`;
+            }
+            
+            // Random value between 100 and 10000
+            const value = Math.floor(Math.random() * 9900) + 100;
+            rows.push([label, value]);
+        }
+        
+        // Sort by value desc for better charts
+        rows.sort((a, b) => b[1] - a[1]);
 
         const durationMs = Date.now() - startTime;
 
