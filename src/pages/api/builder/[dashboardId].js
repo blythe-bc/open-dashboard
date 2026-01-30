@@ -28,7 +28,8 @@ export default async function handler(req, res) {
                     ...version,
                     globalFilters: JSON.parse(version.globalFilters || '{}'),
                     layout: JSON.parse(version.layout || '[]'),
-                    widgets: JSON.parse(version.widgets || '{}')
+                    widgets: JSON.parse(version.widgets || '{}'),
+                    settings: JSON.parse(version.settings || '{}')
                 }
             });
         } catch (error) {
@@ -39,7 +40,7 @@ export default async function handler(req, res) {
         }
     } else if (req.method === 'PUT') {
         // Save Draft
-        const { layout, widgets, globalFilters } = req.body;
+        const { layout, widgets, globalFilters, settings } = req.body;
         try {
             // Check if latest version is draft
             const latest = await db.get(
@@ -50,15 +51,15 @@ export default async function handler(req, res) {
             if (latest.status === 'draft') {
                 // Update existing draft
                 await db.run(
-                    `UPDATE DashboardVersion SET layout = ?, widgets = ?, globalFilters = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
-                    [JSON.stringify(layout), JSON.stringify(widgets), JSON.stringify(globalFilters), latest.id]
+                    `UPDATE DashboardVersion SET layout = ?, widgets = ?, globalFilters = ?, settings = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
+                    [JSON.stringify(layout), JSON.stringify(widgets), JSON.stringify(globalFilters), JSON.stringify(settings || {}), latest.id]
                 );
             } else {
                 // Latest is published, create new draft version
                 const newVersion = latest.version + 1;
                 await db.run(
-                    `INSERT INTO DashboardVersion (id, dashboardId, version, status, layout, widgets, globalFilters) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                    [crypto.randomUUID(), dashboardId, newVersion, 'draft', JSON.stringify(layout), JSON.stringify(widgets), JSON.stringify(globalFilters)]
+                    `INSERT INTO DashboardVersion (id, dashboardId, version, status, layout, widgets, globalFilters, settings) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [crypto.randomUUID(), dashboardId, newVersion, 'draft', JSON.stringify(layout), JSON.stringify(widgets), JSON.stringify(globalFilters), JSON.stringify(settings || {})]
                 );
                 await db.run(`UPDATE Dashboard SET latestVersion = ? WHERE id = ?`, [newVersion, dashboardId]);
             }

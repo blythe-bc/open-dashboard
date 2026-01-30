@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Layout from '../components/Layout';
 
 const HomePage = () => {
     const sections = [
@@ -26,19 +27,13 @@ const HomePage = () => {
         }
     ];
 
-    return (
-        <div style={{ minHeight: '100vh', background: 'var(--accents-1)' }}>
-            <nav className="layout-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '20px', height: '20px', background: 'black', borderRadius: '50%' }}></div>
-                    <span style={{ fontWeight: 600 }}>Open Dashboard</span>
-                </div>
-                <div>
-                    <span style={{ fontSize: '12px', color: 'var(--accents-5)' }}>v0.1.0-beta</span>
-                </div>
-            </nav>
+    const actions = (
+        <span style={{ fontSize: '12px', color: 'var(--accents-5)', alignSelf: 'center' }}>v0.1.0-beta</span>
+    );
 
-            <main className="container" style={{ paddingTop: '40px' }}>
+    return (
+        <Layout title="Home" actions={actions}>
+            <div className="container" style={{ paddingTop: '40px', overflowY: 'auto', flex: 1 }}>
                 <div style={{ marginBottom: '40px', textAlign: 'center' }}>
                     <h1 style={{ fontSize: '2.5rem', letterSpacing: '-0.04em', marginBottom: '10px' }}>Welcome Back</h1>
                     <p style={{ fontSize: '1.1rem', color: 'var(--accents-5)' }}>Select a module to get started.</p>
@@ -62,8 +57,8 @@ const HomePage = () => {
                         </div>
                     ))}
                 </div>
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 };
 

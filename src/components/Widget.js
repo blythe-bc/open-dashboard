@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { postData } from '../lib/api-client';
+import { getThemeColors } from '../lib/themes';
+import { 
+    BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, 
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter 
+} from 'recharts';
 
-const Widget = ({ widget, workspaceId, filters }) => {
+const Widget = ({ widget, workspaceId, filters, theme = 'default' }) => {
+    const COLORS = getThemeColors(theme);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -47,6 +53,18 @@ const Widget = ({ widget, workspaceId, filters }) => {
         document.body.removeChild(link);
     };
 
+    const prepareChartData = () => {
+        if (!data || !data.rows) return [];
+        
+        return data.rows.map(row => {
+            const obj = {};
+            data.columns.forEach((col, index) => {
+                obj[col.name] = row[index];
+            });
+            return obj;
+        });
+    };
+
     const renderChart = () => {
         if (loading) return <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--accents-4)', fontSize: '13px' }}>Loading...</div>;
         if (error) return <div style={{ padding: '20px', color: 'var(--geist-error)', fontSize: '13px' }}>Error: {error}</div>;
@@ -56,29 +74,141 @@ const Widget = ({ widget, workspaceId, filters }) => {
         const config = typeof widget.config === 'string' ? JSON.parse(widget.config || '{}') : (widget.config || {});
         const chartType = config.chartType || 'bar';
 
-        switch (chartType) {
-            case 'kpi':
-                // Assume first row, second column is value
-                const value = data.rows[0] ? data.rows[0][1] : 'N/A';
-                return (
-                    <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                        <div style={{ fontSize: '3.5rem', fontWeight: 700, letterSpacing: '-0.05em', color: 'var(--geist-foreground)' }}>
-                            {typeof value === 'number' ? value.toLocaleString() : value}
-                        </div>
-                        {data.columns[1] && <div style={{ color: 'var(--accents-5)', fontSize: '13px', marginTop: '5px' }}>{data.columns[1].name}</div>}
-                    </div>
-                );
-            case 'bar':
-            case 'line':
-            case 'area':
-            case 'pie':
-            case 'scatter':
-            case 'heatmap':
-            default:
-                return (
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ marginBottom: '10px', fontSize: '10px', color: 'var(--accents-5)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{chartType} View</div>
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
+        if (chartType === 'kpi') {
+             // Assume first row, second column is value
+             const value = data.rows[0] ? data.rows[0][1] : 'N/A';
+             return (
+                 <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                     <div style={{ fontSize: '3.5rem', fontWeight: 700, letterSpacing: '-0.05em', color: 'var(--geist-foreground)' }}>
+                         {typeof value === 'number' ? value.toLocaleString() : value}
+                     </div>
+                     {data.columns[1] && <div style={{ color: 'var(--accents-5)', fontSize: '13px', marginTop: '5px' }}>{data.columns[1].name}</div>}
+                 </div>
+             );
+        }
+
+        const chartData = prepareChartData();
+        // Assume first column is X-axis (category), others are data series
+        const categoryKey = data.columns[0].name;
+        const dataKeys = data.columns.slice(1).map(c => c.name);
+
+        const renderChartContent = () => {
+            switch (chartType) {
+                case 'bar':
+                    return (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--accents-2)" />
+                                <XAxis dataKey={categoryKey} tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <YAxis tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <Tooltip 
+                                    contentStyle={{backgroundColor: 'var(--geist-background)', borderColor: 'var(--accents-2)', borderRadius: '4px'}}
+                                    itemStyle={{color: 'var(--geist-foreground)'}}
+                                />
+                                <Legend />
+                                {dataKeys.map((key, i) => (
+                                    <Bar 
+                                        key={key} 
+                                        dataKey={key} 
+                                        stackId={config.stacked ? 'a' : undefined}
+                                        fill={COLORS[i % COLORS.length]} 
+                                        radius={config.stacked ? [0, 0, 0, 0] : [4, 4, 0, 0]} 
+                                    />
+                                ))}
+                            </BarChart>
+                        </ResponsiveContainer>
+                    );
+                case 'line':
+                    return (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--accents-2)" />
+                                <XAxis dataKey={categoryKey} tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <YAxis tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <Tooltip 
+                                    contentStyle={{backgroundColor: 'var(--geist-background)', borderColor: 'var(--accents-2)', borderRadius: '4px'}}
+                                    itemStyle={{color: 'var(--geist-foreground)'}}
+                                />
+                                <Legend />
+                                {dataKeys.map((key, i) => (
+                                    <Line key={key} type="monotone" dataKey={key} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{r: 4}} activeDot={{r: 6}} />
+                                ))}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    );
+                case 'area':
+                    return (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--accents-2)" />
+                                <XAxis dataKey={categoryKey} tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <YAxis tick={{fontSize: 12, fill: 'var(--accents-5)'}} />
+                                <Tooltip 
+                                    contentStyle={{backgroundColor: 'var(--geist-background)', borderColor: 'var(--accents-2)', borderRadius: '4px'}}
+                                    itemStyle={{color: 'var(--geist-foreground)'}}
+                                />
+                                <Legend />
+                                {dataKeys.map((key, i) => (
+                                    <Area 
+                                        key={key} 
+                                        type="monotone" 
+                                        dataKey={key} 
+                                        stackId={config.stacked ? '1' : undefined}
+                                        stroke={COLORS[i % COLORS.length]} 
+                                        fill={COLORS[i % COLORS.length]} 
+                                        fillOpacity={0.3} 
+                                    />
+                                ))}
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    );
+                case 'pie':
+                    return (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={chartData}
+                                    dataKey={dataKeys[0]} 
+                                    nameKey={categoryKey}
+                                    cx="50%"
+                                    cy="50%"
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    label
+                                >
+                                    {chartData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip 
+                                    contentStyle={{backgroundColor: 'var(--geist-background)', borderColor: 'var(--accents-2)', borderRadius: '4px'}}
+                                    itemStyle={{color: 'var(--geist-foreground)'}}
+                                />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    );
+                case 'scatter':
+                    return (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--accents-2)" />
+                                <XAxis type="category" dataKey={categoryKey} tick={{fontSize: 12, fill: 'var(--accents-5)'}} name={categoryKey} />
+                                <YAxis type="number" dataKey={dataKeys[0]} tick={{fontSize: 12, fill: 'var(--accents-5)'}} name={dataKeys[0]} />
+                                <Tooltip cursor={{ strokeDasharray: '3 3' }} 
+                                    contentStyle={{backgroundColor: 'var(--geist-background)', borderColor: 'var(--accents-2)', borderRadius: '4px'}}
+                                    itemStyle={{color: 'var(--geist-foreground)'}}
+                                />
+                                <Legend />
+                                <Scatter name={dataKeys[0]} data={chartData} fill={COLORS[0]} />
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    );
+                case 'heatmap':
+                default:
+                    // Fallback to simple list view for unsupported or default
+                    return (
+                         <div style={{ flex: 1, overflowY: 'auto' }}>
                              <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
                                 {data.rows.map((row, i) => (
                                     <li key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--accents-2)', fontSize: '13px' }}>
@@ -88,9 +218,18 @@ const Widget = ({ widget, workspaceId, filters }) => {
                                 ))}
                             </ul>
                         </div>
-                    </div>
-                );
-        }
+                    );
+            }
+        };
+
+        return (
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ marginBottom: '10px', fontSize: '10px', color: 'var(--accents-5)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{chartType} View</div>
+                <div style={{ flex: 1, minHeight: 0 }}>
+                    {renderChartContent()}
+                </div>
+            </div>
+        );
     };
 
     const renderGrid = () => {

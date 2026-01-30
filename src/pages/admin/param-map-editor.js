@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetcher, postData } from '../../lib/api-client';
+import AdminLayout from '../../components/AdminLayout';
 
 const ParamMapEditorPage = () => {
     const [maps, setMaps] = useState([]);
@@ -46,18 +47,16 @@ const ParamMapEditorPage = () => {
         }
     };
 
-    if (loading) return <div className="container" style={{ marginTop: '20px' }}>Loading...</div>;
+    if (loading) return <AdminLayout title="Parameter Maps">Loading...</AdminLayout>;
 
     return (
-        <div className="container">
-            <h1 style={{ marginBottom: '20px' }}>Parameter Map Editor</h1>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+        <AdminLayout title="Parameter Maps">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
                 <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Add Parameter Map</h3>
+                    <h3 style={{ marginTop: 0, fontSize: '18px' }}>Add Parameter Map</h3>
                     <form onSubmit={handleCreate}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Endpoint</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Endpoint</label>
                             <select 
                                 className="select"
                                 value={endpointId} 
@@ -68,8 +67,8 @@ const ParamMapEditorPage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Client Param Name</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Client Param Name</label>
                             <input 
                                 className="input"
                                 placeholder="e.g. region"
@@ -78,8 +77,8 @@ const ParamMapEditorPage = () => {
                                 required
                             />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>SP Parameter</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>SP Parameter</label>
                             <input 
                                 className="input"
                                 placeholder="e.g. @region_code"
@@ -88,37 +87,45 @@ const ParamMapEditorPage = () => {
                                 required
                             />
                         </div>
-                        <button className="btn" type="submit">Add Mapping</button>
+                        <button className="btn" type="submit" style={{ width: '100%' }}>Add Mapping</button>
                     </form>
                 </div>
 
-                <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Existing Mappings</h3>
+                <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)' }}>
+                         <h3 style={{ margin: 0, fontSize: '18px' }}>Existing Mappings</h3>
+                    </div>
+                    
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
-                            <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #eee' }}>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Endpoint</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Client Param</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>SP Param</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Transform</th>
+                            <tr style={{ background: 'var(--accents-1)', borderBottom: '1px solid var(--border-color)' }}>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Endpoint</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Client Param</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>SP Param</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Transform</th>
                             </tr>
                         </thead>
                         <tbody>
                             {maps.map(m => (
-                                <tr key={m.id} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px' }}>
+                                <tr key={m.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '12px 16px', color: 'var(--accents-6)' }}>
                                         {endpoints.find(e => e.id === m.endpointId)?.name || m.endpointId}
                                     </td>
-                                    <td style={{ padding: '10px', fontWeight: 'bold' }}>{m.paramName}</td>
-                                    <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--primary-color)' }}>{m.spParam}</td>
-                                    <td style={{ padding: '10px', color: '#888' }}>{m.transform || '-'}</td>
+                                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{m.paramName}</td>
+                                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: 'var(--geist-success)' }}>{m.spParam}</td>
+                                    <td style={{ padding: '12px 16px', color: 'var(--accents-4)' }}>{m.transform || '-'}</td>
                                 </tr>
                             ))}
+                            {maps.length === 0 && (
+                                <tr>
+                                    <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: 'var(--accents-4)' }}>No mappings found.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

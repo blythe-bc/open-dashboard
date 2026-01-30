@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetcher } from '../../lib/api-client';
+import AdminLayout from '../../components/AdminLayout';
 
 const EndpointsPage = () => {
     const [endpoints, setEndpoints] = useState([]);
@@ -32,63 +33,76 @@ const EndpointsPage = () => {
         }
     };
 
-    if (loading) return <div className="container" style={{ marginTop: '20px' }}>Loading...</div>;
+    if (loading) return <AdminLayout title="Endpoints">Loading...</AdminLayout>;
 
     return (
-        <div className="container">
-            <h1 style={{ marginBottom: '20px' }}>Endpoints Management</h1>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
-                <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Endpoints</h3>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
+        <AdminLayout title="Endpoints">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)' }}>
+                        <h3 style={{ margin: 0, fontSize: '18px' }}>Endpoints List</h3>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {endpoints.map(ep => (
                             <li 
                                 key={ep.id} 
                                 onClick={() => loadImpact(ep)}
                                 style={{ 
-                                    padding: '12px', 
-                                    borderBottom: '1px solid #eee', 
+                                    padding: '16px 20px', 
+                                    borderBottom: '1px solid var(--border-color)', 
                                     cursor: 'pointer',
-                                    background: selectedEp?.id === ep.id ? '#f0f7ff' : 'transparent',
-                                    color: selectedEp?.id === ep.id ? 'var(--primary-color)' : 'inherit'
+                                    background: selectedEp?.id === ep.id ? 'var(--accents-1)' : 'transparent',
+                                    transition: 'background 0.15s ease'
                                 }}
                             >
-                                <div style={{ fontWeight: 600 }}>{ep.name}</div>
-                                <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>Metric: {ep.metricId}</div>
+                                <div style={{ fontWeight: 600, fontSize: '15px', color: selectedEp?.id === ep.id ? 'var(--geist-foreground)' : 'var(--accents-6)' }}>{ep.name}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--accents-4)', marginTop: '4px', fontFamily: 'monospace' }}>Metric: {ep.metricId}</div>
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                {selectedEp && impact && (
+                {selectedEp && impact ? (
                     <div className="card">
-                        <h3 style={{ marginTop: 0 }}>Impact Preview: {selectedEp.name}</h3>
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-                            <div style={{ flex: 1, background: '#f9f9f9', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary-color)' }}>{impact.stats.totalCalls}</div>
-                                <div style={{ fontSize: '12px', color: '#666' }}>Calls (24h)</div>
+                        <div style={{ paddingBottom: '20px', marginBottom: '20px', borderBottom: '1px solid var(--border-color)' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px' }}>Impact Preview: {selectedEp.name}</h3>
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                            <div style={{ background: 'var(--accents-1)', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                                <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--geist-foreground)', letterSpacing: '-0.02em' }}>{impact.stats.totalCalls}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--accents-5)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Calls (24h)</div>
                             </div>
-                            <div style={{ flex: 1, background: '#f9f9f9', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>{Math.round(impact.stats.avgDuration || 0)}ms</div>
-                                <div style={{ fontSize: '12px', color: '#666' }}>Avg Duration</div>
+                            <div style={{ background: 'var(--accents-1)', padding: '20px', borderRadius: '12px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                                <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--geist-foreground)', letterSpacing: '-0.02em' }}>{Math.round(impact.stats.avgDuration || 0)}ms</div>
+                                <div style={{ fontSize: '12px', color: 'var(--accents-5)', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Avg Duration</div>
                             </div>
                         </div>
 
-                        <h4>Affected Dashboards ({impact.dashboards.length})</h4>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                        <div style={{ marginBottom: '12px', fontSize: '13px', fontWeight: 600, color: 'var(--accents-6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            Affected Dashboards ({impact.dashboards.length})
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {impact.dashboards.map(d => (
-                                <li key={d.id} style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
-                                    <a href={`/dash/${d.id}`} target="_blank" style={{ fontWeight: 600 }}>{d.name}</a>
-                                    <span style={{ fontSize: '12px', color: '#888', marginLeft: '10px' }}>(v{d.publishedVersion})</span>
-                                </li>
+                                <div key={d.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--geist-background)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                                    <a href={`/dash/${d.id}`} target="_blank" style={{ fontWeight: 600, textDecoration: 'none', color: 'var(--geist-foreground)', fontSize: '14px' }}>{d.name}</a>
+                                    <span style={{ fontSize: '12px', padding: '2px 8px', background: 'var(--accents-2)', borderRadius: '12px', color: 'var(--accents-5)' }}>v{d.publishedVersion}</span>
+                                </div>
                             ))}
-                        </ul>
-                        {impact.dashboards.length === 0 && <p style={{ color: '#888', fontStyle: 'italic' }}>No dashboards are currently using this endpoint.</p>}
+                            {impact.dashboards.length === 0 && (
+                                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--accents-4)', background: 'var(--accents-1)', borderRadius: '8px', border: '1px dashed var(--border-color)' }}>
+                                    No dashboards are currently using this endpoint.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accents-4)', fontStyle: 'italic' }}>
+                        Select an endpoint to see its usage impact.
                     </div>
                 )}
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

@@ -61,23 +61,31 @@ async function seed() {
             'w_sample_chart': {
                 id: 'w_sample_chart',
                 type: 'CHART',
-                name: 'Revenue by Region',
+                name: 'Revenue by Region (Bar)',
                 endpointId: epId,
                 config: { chartType: 'bar' }
+            },
+            'w_stacked_area': {
+                id: 'w_stacked_area',
+                type: 'CHART',
+                name: 'Revenue Trend (Stacked Area)',
+                endpointId: epId,
+                config: { chartType: 'area', stacked: true }
             }
         };
         const layout = [
-            { i: 'w_sample_chart', x: 0, y: 0, w: 6, h: 4 }
+            { i: 'w_sample_chart', x: 0, y: 0, w: 6, h: 4 },
+            { i: 'w_stacked_area', x: 6, y: 0, w: 6, h: 4 }
         ];
 
-        db.run(`INSERT OR IGNORE INTO DashboardVersion (id, dashboardId, version, status, globalFilters, layout, widgets, publishedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [uuid(), dashId, 1, 'published', '{}', JSON.stringify(layout), JSON.stringify(widgets), new Date().toISOString()]);
+        db.run(`INSERT OR REPLACE INTO DashboardVersion (id, dashboardId, version, status, globalFilters, layout, widgets, publishedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            ['v1_dash_sample', dashId, 1, 'published', '{}', JSON.stringify(layout), JSON.stringify(widgets), new Date().toISOString()]);
         
         // Also create a draft version (v2)
-         db.run(`INSERT OR IGNORE INTO DashboardVersion (id, dashboardId, version, status, globalFilters, layout, widgets) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [uuid(), dashId, 2, 'draft', '{}', JSON.stringify(layout), JSON.stringify(widgets)]);
+         db.run(`INSERT OR REPLACE INTO DashboardVersion (id, dashboardId, version, status, globalFilters, layout, widgets) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            ['v2_dash_sample', dashId, 2, 'draft', '{}', JSON.stringify(layout), JSON.stringify(widgets)]);
          
-         db.run(`UPDATE Dashboard SET latestVersion = 2 WHERE id = ?`, [dashId]);
+         db.run(`UPDATE Dashboard SET latestVersion = 2, publishedVersion = 1 WHERE id = ?`, [dashId]);
     });
 
     console.log('Seed data inserted successfully.');

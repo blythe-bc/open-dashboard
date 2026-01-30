@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { fetcher, postData } from '../../lib/api-client';
+import AdminLayout from '../../components/AdminLayout';
 
 const DatasetsPage = () => {
     const [datasets, setDatasets] = useState([]);
@@ -38,18 +40,16 @@ const DatasetsPage = () => {
         }
     };
 
-    if (loading) return <div className="container" style={{ marginTop: '20px' }}>Loading...</div>;
+    if (loading) return <AdminLayout title="Datasets">Loading...</AdminLayout>;
 
     return (
-        <div className="container">
-            <h1 style={{ marginBottom: '20px' }}>Datasets & Metrics</h1>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+        <AdminLayout title="Datasets">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
                 <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Create Dataset</h3>
+                    <h3 style={{ marginTop: 0, fontSize: '18px' }}>Create Dataset</h3>
                     <form onSubmit={handleCreate}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Dataset Name</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Dataset Name</label>
                             <input 
                                 className="input"
                                 value={name} 
@@ -58,8 +58,8 @@ const DatasetsPage = () => {
                                 required
                             />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Allowed Params (comma sep)</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Allowed Params (comma sep)</label>
                             <input 
                                 className="input"
                                 value={allowedParams} 
@@ -67,39 +67,56 @@ const DatasetsPage = () => {
                                 placeholder="e.g. region,dateFrom,dateTo"
                             />
                         </div>
-                        <button className="btn" type="submit">Create Dataset</button>
+                        <button className="btn" type="submit" style={{ width: '100%' }}>Create Dataset</button>
                     </form>
                 </div>
 
-                <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Existing Datasets</h3>
-                    {datasets.map(ds => (
-                        <div key={ds.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h4 style={{ margin: '0 0 5px 0' }}>{ds.name}</h4>
-                                <small style={{ color: '#888' }}>ID: {ds.id}</small>
-                            </div>
-                            <div style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                                Allowed Params: {ds.allowedParams || 'None'}
-                            </div>
-                            
-                            <div style={{ background: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
-                                <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px', color: '#555' }}>Metrics ({ds.metrics ? ds.metrics.length : 0})</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                    {ds.metrics && ds.metrics.map(m => (
-                                        <span key={m.id} style={{ border: '1px solid #ddd', padding: '2px 6px', borderRadius: '4px', background: 'white', fontSize: '12px' }}>
-                                            {m.name}
-                                        </span>
-                                    ))}
-                                    {(!ds.metrics || ds.metrics.length === 0) && <span style={{ color: '#999', fontSize: '12px' }}>No metrics defined</span>}
+                <div>
+                    <h3 style={{ marginTop: 0, fontSize: '18px', marginBottom: '16px' }}>Existing Datasets</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {datasets.map(ds => (
+                            <div key={ds.id} className="card" style={{ padding: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                                    <div>
+                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '16px' }}>{ds.name}</h4>
+                                        <div style={{ fontSize: '12px', color: 'var(--accents-4)', fontFamily: 'monospace' }}>{ds.id}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                         <span style={{ fontSize: '12px', color: 'var(--accents-5)' }}>
+                                            {ds.allowedParams ? ds.allowedParams.split(',').length : 0} Filters
+                                         </span>
+                                    </div>
+                                </div>
+                                
+                                <div style={{ fontSize: '14px', color: 'var(--accents-5)', marginBottom: '16px', background: 'var(--accents-1)', padding: '8px 12px', borderRadius: '4px' }}>
+                                    <span style={{ fontWeight: 500 }}>Allowed Params: </span>
+                                    {ds.allowedParams || 'None'}
+                                </div>
+                                
+                                <div>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '8px', color: 'var(--accents-6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Metrics & Endpoints</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {ds.metrics && ds.metrics.map(m => (
+                                            <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', border: '1px solid var(--border-color)', borderRadius: '6px' }}>
+                                                <span style={{ fontSize: '14px', fontWeight: 500 }}>{m.name}</span>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                     {/* In a real app we would link to a specific filtered view of params */}
+                                                    <Link href="/admin/param-map-editor" className="btn secondary" style={{ height: '24px', fontSize: '12px', padding: '0 8px', textDecoration: 'none' }}>
+                                                        Map Params
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {(!ds.metrics || ds.metrics.length === 0) && <span style={{ color: 'var(--accents-4)', fontSize: '13px', fontStyle: 'italic' }}>No metrics defined</span>}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                    {datasets.length === 0 && <p>No datasets found.</p>}
+                        ))}
+                        {datasets.length === 0 && <div style={{ color: 'var(--accents-4)', padding: '20px', textAlign: 'center' }}>No datasets found.</div>}
+                    </div>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

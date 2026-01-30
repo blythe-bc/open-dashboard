@@ -28,12 +28,14 @@ export default async function handler(req, res) {
         const widgets = Object.values(widgetsMap); // Convert map to array for frontend
         const layout = JSON.parse(version.layout || '[]');
         const globalFilters = JSON.parse(version.globalFilters || '{}');
+        const settings = JSON.parse(version.settings || '{"theme": "default"}');
 
         res.status(200).json({
             ...dashboard,
             widgets,
             layout,
             globalFilters,
+            settings,
             version: version.version,
             publishedAt: version.publishedAt
         });

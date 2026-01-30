@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import { fetcher, postData } from '../../lib/api-client';
 import Widget from '../../components/Widget';
-import { Responsive as ResponsiveGridLayout, WidthProvider } from 'react-grid-layout';
+import Layout from '../../components/Layout';
+
+const ResponsiveGridLayout = dynamic(() => import('../../components/ResponsiveGridLayout'), { ssr: false });
 
 const DashboardViewer = () => {
     const router = useRouter();
@@ -114,23 +117,19 @@ const DashboardViewer = () => {
         }
     };
 
-    if (loading) return <div className="container" style={{ marginTop: '20px', color: 'var(--accents-5)' }}>Loading dashboard...</div>;
-    if (error) return <div className="container" style={{ marginTop: '20px', color: 'var(--geist-error)' }}>Error: {error}</div>;
-    if (!dashboard) return <div className="container" style={{ marginTop: '20px' }}>Dashboard not found</div>;
+    if (loading) return <Layout title="Loading...">Loading dashboard...</Layout>;
+    if (error) return <Layout title="Error">Error: {error}</Layout>;
+    if (!dashboard) return <Layout title="Not Found">Dashboard not found</Layout>;
+
+    const headerActions = (
+        <button className="btn" onClick={handleAskAI} disabled={llmLoading} style={{ background: 'linear-gradient(90deg, #7928CA, #FF0080)', color: 'white', border: 'none' }}>
+            {llmLoading ? 'Thinking...' : '✨ Ask AI'}
+        </button>
+    );
 
     return (
-        <div style={{ minHeight: '100vh', background: 'var(--accents-1)' }}>
-            <nav className="layout-header">
-                <h1 style={{ margin: 0, fontSize: '1.25rem' }}>{dashboard.name}</h1>
-                
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                     <button className="btn" onClick={handleAskAI} disabled={llmLoading} style={{ background: 'linear-gradient(90deg, #7928CA, #FF0080)', color: 'white', border: 'none' }}>
-                        {llmLoading ? 'Thinking...' : '✨ Ask AI'}
-                    </button>
-                </div>
-            </nav>
-
-            <div className="container" style={{ paddingTop: '24px' }}>
+        <Layout title={dashboard.name} actions={headerActions}>
+            <div className="container" style={{ paddingTop: '24px', flex: 1, overflowY: 'auto' }}>
                 {llmResult && (
                     <div className="card" style={{ marginBottom: '24px', background: 'var(--geist-background)', border: '1px solid var(--accents-2)' }}>
                         <h4 style={{ margin: '0 0 10px 0' }}>AI Insight</h4>
@@ -181,19 +180,43 @@ const DashboardViewer = () => {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px', paddingBottom: '40px' }}>
-                    {dashboard.widgets.map(widget => (
-                        <div key={widget.id} style={{ height: '320px' }}>
-                            <Widget 
-                                widget={widget} 
-                                workspaceId={dashboard.workspaceId} 
-                                filters={filters}
-                            />
-                        </div>
-                    ))}
+                <div style={{ paddingBottom: '40px' }}>
+                    <ResponsiveGridLayout
+                        className="layout"
+                        layouts={{ lg: dashboard.layout || [] }}
+                        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                        rowHeight={30}
+                        isDraggable={false}
+                        isResizable={false}
+                    >
+                        {dashboard.layout && dashboard.layout.map(item => {
+                             const widget = dashboard.widgets.find(w => w.id === item.i);
+                             if (!widget) return null;
+                             
+                             return (
+                                <div key={item.i} style={{ 
+                                    background: 'var(--geist-background)', 
+                                    border: '1px solid var(--border-color)', 
+                                    borderRadius: 'var(--radius)', 
+                                    padding: '12px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden'
+                                }}>
+                                     <Widget 
+                                        widget={widget} 
+                                        workspaceId={dashboard.workspaceId} 
+                                        filters={filters}
+                                        theme={dashboard.settings?.theme || 'default'}
+                                     />
+                                </div>
+                             );
+                        })}
+                    </ResponsiveGridLayout>
                 </div>
             </div>
-        </div>
+        </Layout>
     );
 };
 

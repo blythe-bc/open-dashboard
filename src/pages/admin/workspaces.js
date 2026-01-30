@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetcher, postData } from '../../lib/api-client';
+import AdminLayout from '../../components/AdminLayout';
 
 const WorkspacesPage = () => {
     const [workspaces, setWorkspaces] = useState([]);
@@ -53,15 +54,10 @@ const WorkspacesPage = () => {
     };
 
     return (
-        <div className="container" style={{ paddingTop: '40px' }}>
-            <div style={{ marginBottom: '40px' }}>
-                <h1 style={{ fontSize: '24px', letterSpacing: '-0.02em', marginBottom: '8px' }}>Workspaces & Policies</h1>
-                <p style={{ margin: 0 }}>Manage your organization's workspaces and security policies.</p>
-            </div>
-            
+        <AdminLayout title="Workspaces & Policies">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
                 <div className="card">
-                    <h3 style={{ fontSize: '16px', marginBottom: '16px' }}>Workspaces</h3>
+                    <h3 style={{ fontSize: '16px', marginBottom: '16px', marginTop: 0 }}>Workspaces</h3>
                     <form onSubmit={handleCreate} style={{ marginBottom: '20px', display: 'flex', gap: '8px' }}>
                         <input 
                             className="input"
@@ -96,7 +92,7 @@ const WorkspacesPage = () => {
                     </ul>
                 </div>
 
-                {selectedWs && policy && (
+                {selectedWs && policy ? (
                     <div className="card">
                         <div style={{ paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
                             <h3 style={{ fontSize: '16px', margin: 0 }}>Policy: {selectedWs.name}</h3>
@@ -163,9 +159,13 @@ const WorkspacesPage = () => {
                             </div>
                         </form>
                     </div>
+                ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accents-4)', fontStyle: 'italic' }}>
+                        Select a workspace to manage its policy.
+                    </div>
                 )}
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

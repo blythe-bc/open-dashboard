@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import { fetcher, postData } from '../../lib/api-client';
 import useUndoRedo from '../../lib/useUndoRedo';
-import { Responsive as ResponsiveGridLayout } from 'react-grid-layout';
+import { DASHBOARD_THEMES } from '../../lib/themes';
 import Layout from '../../components/Layout';
+import Widget from '../../components/Widget';
+
+const ResponsiveGridLayout = dynamic(() => import('../../components/ResponsiveGridLayout'), { ssr: false });
 
 const BuilderPage = () => {
     const router = useRouter();
@@ -42,7 +46,14 @@ const BuilderPage = () => {
                 fetcher('/api/me/policies')
             ]);
             setDashboard(dashData.meta);
-            resetVersion(dashData.version);
+            
+            // Ensure settings exist in version
+            const versionData = dashData.version || {};
+            if (!versionData.settings) {
+                versionData.settings = { theme: 'default' };
+            }
+            
+            resetVersion(versionData);
             setPolicies(policyData);
             setSaveStatus('saved');
         } catch (error) {
@@ -100,7 +111,8 @@ const BuilderPage = () => {
                 body: JSON.stringify({
                     layout: version.layout,
                     widgets: version.widgets,
-                    globalFilters: version.globalFilters
+                    globalFilters: version.globalFilters,
+                    settings: version.settings
                 })
             });
             setSaveStatus('saved');
@@ -256,8 +268,17 @@ const BuilderPage = () => {
                                             alignSelf: 'center', 
                                             marginBottom: '8px' 
                                         }}></div>
-                                        <div style={{ fontWeight: 500, fontSize: '14px', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w ? w.name : 'Unknown'}</div>
-                                        <small style={{ color: 'var(--accents-4)', fontSize: '11px', textTransform: 'uppercase' }}>{w ? w.type : ''}</small>
+                                        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+                                             {w ? (
+                                                 <Widget 
+                                                    widget={w}
+                                                    workspaceId={dashboard?.workspaceId}
+                                                    theme={version.settings?.theme || 'default'}
+                                                 />
+                                             ) : (
+                                                 <div style={{ color: 'var(--accents-4)', fontSize: '12px' }}>Unknown Widget</div>
+                                             )}
+                                        </div>
                                     </div>
                                  );
                             })}
@@ -286,6 +307,16 @@ const BuilderPage = () => {
                             onClick={() => setActiveTab('visual')}
                         >
                             Visual
+                        </div>
+                        <div 
+                            style={{ 
+                                flex: 1, padding: '12px', textAlign: 'center', fontSize: '13px', cursor: 'pointer', fontWeight: 500,
+                                borderBottom: activeTab === 'dash' ? '2px solid var(--geist-foreground)' : 'none',
+                                color: activeTab === 'dash' ? 'var(--geist-foreground)' : 'var(--accents-4)'
+                            }}
+                            onClick={() => setActiveTab('dash')}
+                        >
+                            Dash
                         </div>
                     </div>
                     
@@ -451,6 +482,19 @@ const BuilderPage = () => {
                                                         <option value="kpi">KPI Card</option>
                                                     </select>
                                                 </div>
+                                                
+                                                {(selectedWidget.config.chartType === 'bar' || selectedWidget.config.chartType === 'area') && (
+                                                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center' }}>
+                                                        <input 
+                                                            type="checkbox"
+                                                            id="stacked-check"
+                                                            checked={selectedWidget.config.stacked || false}
+                                                            onChange={(e) => handleWidgetConfigUpdate('stacked', e.target.checked)}
+                                                            style={{ marginRight: '8px' }}
+                                                        />
+                                                        <label htmlFor="stacked-check" style={{ fontSize: '13px' }}>Stacked</label>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
@@ -473,6 +517,43 @@ const BuilderPage = () => {
                                                 </div>
                                             </div>
                                         )}
+                                    </>
+                                )}
+                                
+                                {activeTab === 'dash' && (
+                                    <>
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '12px', color: 'var(--accents-5)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dashboard Settings</label>
+                                            
+                                            <div style={{ marginBottom: '12px' }}>
+                                                <div style={{ fontSize: '13px', marginBottom: '4px' }}>Color Theme</div>
+                                                <select 
+                                                    className="select"
+                                                    value={version.settings?.theme || 'default'} 
+                                                    onChange={(e) => {
+                                                        setVersion({
+                                                            ...version,
+                                                            settings: {
+                                                                ...version.settings,
+                                                                theme: e.target.value
+                                                            }
+                                                        });
+                                                    }}
+                                                >
+                                                    {Object.keys(DASHBOARD_THEMES).map(key => (
+                                                        <option key={key} value={key}>{DASHBOARD_THEMES[key].name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            
+                                            <div style={{ padding: '12px', background: 'var(--accents-1)', borderRadius: '4px' }}>
+                                                <div style={{ display: 'flex', gap: '4px', height: '20px' }}>
+                                                    {DASHBOARD_THEMES[version.settings?.theme || 'default'].colors.map(c => (
+                                                        <div key={c} style={{ flex: 1, background: c, borderRadius: '2px' }}></div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </>
                                 )}
 

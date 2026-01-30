@@ -14,5 +14,11 @@ export async function postData(url, data) {
         },
         body: JSON.stringify(data),
     });
+    
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'An error occurred while posting the data.');
+    }
+
     return res.json();
 }

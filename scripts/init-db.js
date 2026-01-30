@@ -129,6 +129,7 @@ db.serialize(() => {
         globalFilters TEXT, -- JSON
         layout TEXT, -- JSON react-grid-layout
         widgets TEXT, -- JSON map(id -> config)
+        settings TEXT, -- JSON { theme: '...' }
         publishedAt TEXT,
         createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
         updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetcher, postData } from '../../lib/api-client';
+import AdminLayout from '../../components/AdminLayout';
 
 const RoleBindingsPage = () => {
     const [bindings, setBindings] = useState([]);
@@ -46,18 +47,16 @@ const RoleBindingsPage = () => {
         }
     };
 
-    if (loading) return <div className="container" style={{ marginTop: '20px' }}>Loading...</div>;
+    if (loading) return <AdminLayout title="Role Bindings">Loading...</AdminLayout>;
 
     return (
-        <div className="container">
-            <h1 style={{ marginBottom: '20px' }}>Role Bindings</h1>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+        <AdminLayout title="Role Bindings">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
                 <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Add New Binding</h3>
+                    <h3 style={{ marginTop: 0, fontSize: '18px' }}>Add New Binding</h3>
                     <form onSubmit={handleCreate}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Workspace</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Workspace</label>
                             <select 
                                 className="select"
                                 value={wsId} 
@@ -68,8 +67,8 @@ const RoleBindingsPage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>AD Group / User</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>AD Group / User</label>
                             <input 
                                 className="input"
                                 placeholder="e.g. DOMAIN\group"
@@ -78,8 +77,8 @@ const RoleBindingsPage = () => {
                                 required
                             />
                         </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Role</label>
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--accents-5)' }}>Role</label>
                             <select 
                                 className="select"
                                 value={role} 
@@ -90,49 +89,57 @@ const RoleBindingsPage = () => {
                                 <option value="PlatformAdmin">PlatformAdmin</option>
                             </select>
                         </div>
-                        <button className="btn" type="submit">Add Binding</button>
+                        <button className="btn" type="submit" style={{ width: '100%' }}>Add Binding</button>
                     </form>
                 </div>
 
-                <div className="card">
-                    <h3 style={{ marginTop: 0 }}>Existing Bindings</h3>
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)' }}>
+                        <h3 style={{ margin: 0, fontSize: '18px' }}>Existing Bindings</h3>
+                    </div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                         <thead>
-                            <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #eee' }}>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Workspace</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>AD Group</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Role</th>
-                                <th style={{ padding: '10px', textAlign: 'left' }}>Created</th>
+                            <tr style={{ background: 'var(--accents-1)', borderBottom: '1px solid var(--border-color)' }}>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Workspace</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>AD Group</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Role</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', textTransform: 'uppercase', color: 'var(--accents-5)', letterSpacing: '0.05em' }}>Created</th>
                             </tr>
                         </thead>
                         <tbody>
                             {bindings.map(b => (
-                                <tr key={b.id} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px' }}>
+                                <tr key={b.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '12px 16px' }}>
                                         {workspaces.find(w => w.id === b.workspaceId)?.name || b.workspaceId}
                                     </td>
-                                    <td style={{ padding: '10px' }}>{b.adGroup}</td>
-                                    <td style={{ padding: '10px' }}>
+                                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{b.adGroup}</td>
+                                    <td style={{ padding: '12px 16px' }}>
                                         <span style={{ 
-                                            padding: '2px 6px', 
-                                            borderRadius: '4px', 
-                                            background: '#eef',
-                                            color: 'var(--primary-color)',
-                                            fontSize: '12px'
+                                            padding: '2px 8px', 
+                                            borderRadius: '12px', 
+                                            background: 'var(--accents-2)',
+                                            color: 'var(--geist-foreground)',
+                                            fontSize: '12px',
+                                            fontWeight: 500
                                         }}>
                                             {b.role}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '10px', color: '#888' }}>
+                                    <td style={{ padding: '12px 16px', color: 'var(--accents-4)' }}>
                                         {new Date(b.createdAt).toLocaleDateString()}
                                     </td>
                                 </tr>
                             ))}
+                            {bindings.length === 0 && (
+                                <tr>
+                                    <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: 'var(--accents-4)' }}>No bindings found.</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
 };
 

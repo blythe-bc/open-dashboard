@@ -14,6 +14,8 @@ export default async function handler(req, res) {
     const db = await openDb();
 
     try {
+        console.log(`[Query] Executing for ws:${workspaceId}, ep:${endpointId}, groups:${adGroups}`);
+
         // 1. Validate Workspace Access
         const placeholders = adGroups.map(() => '?').join(',');
         const roleBinding = await db.get(
@@ -22,6 +24,7 @@ export default async function handler(req, res) {
         );
 
         if (!roleBinding) {
+            console.error('[Query] Access Denied: No role binding');
             return res.status(403).json({
                 status: 403,
                 errorCode: 'FORBIDDEN',
@@ -31,10 +34,9 @@ export default async function handler(req, res) {
         }
 
         // 2. Validate Endpoint
-        // In a real scenario, we'd check if this endpoint belongs to the workspace's allowed catalog.
-        // For MVP, we'll check if it exists.
         const endpoint = await db.get(`SELECT * FROM SemanticMetricEndpoint WHERE id = ?`, [endpointId]);
         if (!endpoint) {
+             console.error(`[Query] Endpoint not found: ${endpointId}`);
             return res.status(400).json({
                 status: 400,
                 errorCode: 'VALIDATION_FAILED',
@@ -46,7 +48,14 @@ export default async function handler(req, res) {
         // 3. Validate Parameters against allowlist
         const metric = await db.get(`SELECT * FROM SemanticMetric WHERE id = ?`, [endpoint.metricId]);
         const dataset = await db.get(`SELECT * FROM SemanticDataset WHERE id = ?`, [metric.datasetId]);
+        
+        if (!dataset) {
+             console.error(`[Query] Dataset not found for metric: ${endpoint.metricId}`);
+             throw new Error('Dataset configuration error');
+        }
+
         const allowedParams = dataset.allowedParams ? dataset.allowedParams.split(',') : [];
+        console.log(`[Query] Allowed params: ${allowedParams.join(',')}`);
 
         const inputParamNames = Object.keys(params || {});
         for (const p of inputParamNames) {
@@ -69,29 +78,25 @@ export default async function handler(req, res) {
         // Generate dynamic mock data based on endpointId to make it look real
         const columns = [
             { name: "category", type: "string" },
-            { name: "value", type: "number" }
+            { name: "Value A", type: "number" },
+            { name: "Value B", type: "number" }
         ];
 
-        const rowCount = Math.floor(Math.random() * 20) + 5; // 5 to 25 rows
+        const rowCount = Math.floor(Math.random() * 10) + 5; // 5 to 15 rows
         const rows = [];
         const categories = ['North', 'South', 'East', 'West', 'Central', 'EMEA', 'APAC', 'LATAM'];
-        const products = ['Widget A', 'Widget B', 'Gadget X', 'Gadget Y', 'Tool Z'];
         
         for (let i = 0; i < rowCount; i++) {
-            let label;
-            if (endpointId.includes('region')) {
-                label = categories[i % categories.length];
-            } else {
-                label = `${products[i % products.length]} - ${Math.floor(i / products.length) + 1}`;
-            }
+            const label = categories[i % categories.length] + (i >= categories.length ? ` ${Math.floor(i/categories.length) + 1}` : '');
             
-            // Random value between 100 and 10000
-            const value = Math.floor(Math.random() * 9900) + 100;
-            rows.push([label, value]);
+            // Random values
+            const valA = Math.floor(Math.random() * 5000) + 500;
+            const valB = Math.floor(Math.random() * 3000) + 200;
+            rows.push([label, valA, valB]);
         }
         
-        // Sort by value desc for better charts
-        rows.sort((a, b) => b[1] - a[1]);
+        // Sort by category name for stability
+        rows.sort((a, b) => a[0].localeCompare(b[0]));
 
         const durationMs = Date.now() - startTime;
 
